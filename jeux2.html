@@ -1,136 +1,156 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Jeu du Chien Mobile</title>
-    <style>
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            background-color: #f0f0f0;
-            font-family: sans-serif;
-            touch-action: manipulation; /* pour mobile */
-        }
-        #game {
-            position: relative;
-            width: 100%;
-            max-width: 800px;
-            height: 200px;
-            background-color: #fff;
-            border: 2px solid #000;
-            overflow: hidden;
-        }
-        #dog {
-            position: absolute;
-            bottom: 0;
-            left: 50px;
-            width: 40px;
-            height: 40px;
-            background-color: brown;
-            border-radius: 50%;
-        }
-        .obstacle {
-            position: absolute;
-            bottom: 0;
-            width: 20px;
-            height: 40px;
-            background-color: green;
-            right: 0;
-        }
-        #score {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            font-weight: bold;
-        }
-        #jumpButton {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            width: 80px;
-            height: 40px;
-            background-color: orange;
-            border: none;
-            border-radius: 5px;
-            font-size: 18px;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Jeu du Chien Mobile</title>
+<style>
+    body {
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #f0f0f0;
+        touch-action: manipulation;
+        font-family: sans-serif;
+    }
+    #game {
+        position: relative;
+        width: 100%;
+        max-width: 600px;
+        height: 200px;
+        background: #fff;
+        border: 2px solid #000;
+        overflow: hidden;
+    }
+    #dog {
+        position: absolute;
+        bottom: 0;
+        left: 50px;
+        width: 40px;
+        height: 40px;
+        background: brown;
+        border-radius: 50%;
+    }
+    .obstacle {
+        position: absolute;
+        bottom: 0;
+        width: 20px;
+        height: 40px;
+        background: green;
+    }
+    #score {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        font-weight: bold;
+    }
+    #replayBtn {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 10px 20px;
+        font-size: 18px;
+        display: none;
+        background-color: orange;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+</style>
 </head>
 <body>
-    <div id="game">
-        <div id="dog"></div>
-        <div id="score">Score: 0</div>
-        <button id="jumpButton">SAUTER</button>
-    </div>
+<div id="game">
+    <div id="dog"></div>
+    <div id="score">Score: 0</div>
+    <button id="replayBtn">Rejouer</button>
+</div>
 
-    <script>
-        const dog = document.getElementById('dog');
-        const game = document.getElementById('game');
-        const scoreDisplay = document.getElementById('score');
-        const jumpButton = document.getElementById('jumpButton');
+<script>
+const dog = document.getElementById('dog');
+const game = document.getElementById('game');
+const scoreDisplay = document.getElementById('score');
+const replayBtn = document.getElementById('replayBtn');
 
-        let dogBottom = 0;
-        let isJumping = false;
-        let score = 0;
+let dogBottom = 0;
+let isJumping = false;
+let score = 0;
+let gameOver = false;
+let obstacles = [];
 
-        function jump() {
-            if (isJumping) return;
-            isJumping = true;
-            let upInterval = setInterval(() => {
-                if (dogBottom >= 100) {
-                    clearInterval(upInterval);
-                    let downInterval = setInterval(() => {
-                        if (dogBottom <= 0) {
-                            clearInterval(downInterval);
-                            isJumping = false;
-                        }
-                        dogBottom -= 5;
-                        dog.style.bottom = dogBottom + 'px';
-                    }, 20);
+// Fonction de saut
+function jump() {
+    if (isJumping || gameOver) return;
+    isJumping = true;
+    let up = setInterval(() => {
+        if (dogBottom >= 100) {
+            clearInterval(up);
+            let down = setInterval(() => {
+                if (dogBottom <= 0) {
+                    clearInterval(down);
+                    isJumping = false;
                 }
-                dogBottom += 5;
+                dogBottom -= 5;
                 dog.style.bottom = dogBottom + 'px';
             }, 20);
         }
+        dogBottom += 5;
+        dog.style.bottom = dogBottom + 'px';
+    }, 20);
+}
 
-        function createObstacle() {
-            const obstacle = document.createElement('div');
-            obstacle.classList.add('obstacle');
-            let obstaclePosition = 800;
-            game.appendChild(obstacle);
+// Créer obstacles
+function createObstacle() {
+    if (gameOver) return;
 
-            let moveInterval = setInterval(() => {
-                if (obstaclePosition < -20) {
-                    clearInterval(moveInterval);
-                    game.removeChild(obstacle);
-                    score += 1;
-                    scoreDisplay.textContent = "Score: " + score;
-                }
+    const obstacle = document.createElement('div');
+    obstacle.classList.add('obstacle');
+    let pos = game.offsetWidth;
+    obstacle.style.left = pos + 'px';
+    game.appendChild(obstacle);
+    obstacles.push(obstacle);
 
-                if (
-                    obstaclePosition >= 50 &&
-                    obstaclePosition <= 90 &&
-                    dogBottom < 40
-                ) {
-                    alert("Game Over! Score: " + score);
-                    location.reload();
-                }
-
-                obstaclePosition -= 6;
-                obstacle.style.right = obstaclePosition + 'px';
-            }, 20);
-
-            setTimeout(createObstacle, Math.random() * 3000 + 1000);
+    let move = setInterval(() => {
+        if (pos < -20) {
+            clearInterval(move);
+            game.removeChild(obstacle);
+            obstacles = obstacles.filter(o => o !== obstacle);
+            if (!gameOver) {
+                score++;
+                scoreDisplay.textContent = "Score: " + score;
+            }
         }
 
-        // Pour mobile : tap sur écran
-        game.addEventListener('touchstart', jump);
-        jumpButton.addEventListener('click', jump);
+        // Collision
+        if (pos <= 90 && pos >= 50 && dogBottom < 40) {
+            endGame();
+        }
 
-        createObstacle();
-    </script>
+        pos -= 6;
+        obstacle.style.left = pos + 'px';
+    }, 20);
+
+    setTimeout(createObstacle, Math.random() * 2000 + 1000);
+}
+
+// Fin de jeu
+function endGame() {
+    gameOver = true;
+    obstacles.forEach(o => game.removeChild(o));
+    replayBtn.style.display = 'block';
+}
+
+// Rejouer
+replayBtn.addEventListener('click', () => {
+    location.reload();
+});
+
+// Tap sur écran pour sauter
+game.addEventListener('touchstart', jump);
+game.addEventListener('mousedown', jump);
+
+createObstacle();
+</script>
 </body>
 </html>
