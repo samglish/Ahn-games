@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Jeu du Chien</title>
+    <title>Jeu du Chien Mobile</title>
     <style>
         body {
             display: flex;
@@ -12,10 +12,12 @@
             margin: 0;
             background-color: #f0f0f0;
             font-family: sans-serif;
+            touch-action: manipulation; /* pour mobile */
         }
         #game {
             position: relative;
-            width: 800px;
+            width: 100%;
+            max-width: 800px;
             height: 200px;
             background-color: #fff;
             border: 2px solid #000;
@@ -44,18 +46,31 @@
             left: 5px;
             font-weight: bold;
         }
+        #jumpButton {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            width: 80px;
+            height: 40px;
+            background-color: orange;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
     <div id="game">
         <div id="dog"></div>
         <div id="score">Score: 0</div>
+        <button id="jumpButton">SAUTER</button>
     </div>
 
     <script>
         const dog = document.getElementById('dog');
         const game = document.getElementById('game');
         const scoreDisplay = document.getElementById('score');
+        const jumpButton = document.getElementById('jumpButton');
 
         let dogBottom = 0;
         let isJumping = false;
@@ -95,7 +110,6 @@
                     scoreDisplay.textContent = "Score: " + score;
                 }
 
-                // Collision detection
                 if (
                     obstaclePosition >= 50 &&
                     obstaclePosition <= 90 &&
@@ -109,13 +123,12 @@
                 obstacle.style.right = obstaclePosition + 'px';
             }, 20);
 
-            // Next obstacle random time
             setTimeout(createObstacle, Math.random() * 3000 + 1000);
         }
 
-        document.addEventListener('keydown', (e) => {
-            if (e.code === 'Space') jump();
-        });
+        // Pour mobile : tap sur écran
+        game.addEventListener('touchstart', jump);
+        jumpButton.addEventListener('click', jump);
 
         createObstacle();
     </script>
