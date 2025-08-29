@@ -1,5 +1,5 @@
 # Questions pour un Champion - ENSPM Maroua
-
+```html
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -175,3 +175,4 @@ showQuestion();
 </script>
 </body>
 </html>
+```
