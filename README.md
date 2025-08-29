@@ -50,8 +50,7 @@
         <div id="player"></div>
         <div id="score">Score: 0</div>
     </div>
-
-    <script>
+<script>
         const player = document.getElementById('player');
         const game = document.getElementById('game');
         const scoreDisplay = document.getElementById('score');
@@ -117,6 +116,6 @@
         });
 
         createObstacle();
-    </script>
+</script>
 </body>
 </html>
