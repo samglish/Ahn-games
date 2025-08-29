@@ -1,156 +1,175 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeux - AHN GAMES</title>
-    <link rel="stylesheet" href="styles.css">
+<meta charset="UTF-8">
+<title>Questions pour un Champion - ENSPM Maroua</title>
 <style>
-.games-container {
-    max-width: 100%;
-    margin: 20px auto;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 10px;
-    background: #f9f9f9;
-    text-align: center;
-}
-.game-box {
-    margin: 20px 0;
-    padding: 15px;
-    border-radius: 8px;
-    background: #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-}
-button {
-    padding: 10px 15px;
-    margin: 5px;
-    border: none;
-    border-radius: 5px;
-    background: #007bff;
-    color: white;
-    cursor: pointer;
-    font-size: 16px;
-}
-button:hover {
-    background: #0056b3;
-}
-#gameCanvas {
-    width: 100%;
-    max-width: 400px;
-    height: auto;
-    border:1px solid #000;
-}
-#replay-btn {
-    display: none;
-}
+    body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #f0f0f0;
+    }
+    #game {
+        background: #fff;
+        padding: 20px 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        max-width: 600px;
+        width: 100%;
+    }
+    #question {
+        font-size: 20px;
+        margin-bottom: 20px;
+    }
+    .option {
+        display: block;
+        background: #e0e0e0;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: 0.2s;
+        border: none;
+        text-align: left;
+    }
+    .option:hover {
+        background: #c0c0c0;
+    }
+    .correct {
+        background-color: #4CAF50 !important; /* vert */
+        color: #fff;
+    }
+    .wrong {
+        background-color: #f44336 !important; /* rouge */
+        color: #fff;
+    }
+    #nextBtn, #replayBtn {
+        padding: 10px 20px;
+        font-size: 16px;
+        margin-top: 15px;
+        cursor: pointer;
+        border: none;
+        border-radius: 5px;
+        background-color: #4CAF50;
+        color: #fff;
+    }
+    #score {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    #replayBtn {
+        display: none;
+        background-color: orange;
+    }
 </style>
 </head>
 <body>
-<center>
-<div class="game-box">
-    <h3>BLOCS 🎮 | AHN GAMES</h3>
-    <canvas id="gameCanvas" width="400" height="500"></canvas>
-    <p id="game-status" style="text-align:center; font-weight:bold;"></p>
-    <button id="replay-btn">🔄 Rejouer</button>
-    <div style="text-align:center; margin-top:10px;">
-        <button id="btn-left">◀️ Gauche</button>
-        <button id="btn-right">▶️ Droite</button>
-    </div>
+<div id="game">
+    <div id="score">Score: 0</div>
+    <div id="question"></div>
+    <div id="options"></div>
+    <button id="nextBtn">Suivant</button>
+    <button id="replayBtn">Rejouer</button>
 </div>
-</center>
+
 <script>
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+// Questions ENSPM Maroua
+const questions = [
+    {
+        question: "Quelle est la couleur du logo de l'ENSPM?",
+        options: ["Bleu", "Vert", "Rouge", "Jaune"],
+        answer: 0
+    },
+    {
+        question: "En quelle année l'ENSPM a-t-elle été créée?",
+        options: ["2001", "1995", "2010", "1988"],
+        answer: 1
+    },
+    {
+        question: "Quel département est spécialisé en génie informatique?",
+        options: ["DEG", "DES", "DIG", "DEP"],
+        answer: 2
+    },
+    {
+        question: "Combien d'années dure la formation en master?",
+        options: ["1", "2", "3", "4"],
+        answer: 1
+    }
+];
 
-let player, obstacles, gameOver;
+let currentQuestion = 0;
+let score = 0;
 
-// Réinitialiser le jeu
-function initGame() {
-    player = { x: 180, y: 450, width: 40, height: 40, speed: 5 };
-    obstacles = [];
-    gameOver = false;
-    document.getElementById("game-status").textContent = "";
-    document.getElementById("replay-btn").style.display = "none";
-    gameLoop();
+// Afficher la question et options
+function showQuestion() {
+    const q = questions[currentQuestion];
+    document.getElementById("question").innerText = q.question;
+    const optionsDiv = document.getElementById("options");
+    optionsDiv.innerHTML = "";
+
+    q.options.forEach((opt, index) => {
+        const btn = document.createElement("button");
+        btn.classList.add("option");
+        btn.innerText = opt;
+        btn.addEventListener("click", () => selectAnswer(index, btn));
+        optionsDiv.appendChild(btn);
+    });
 }
 
-// Clavier
-let keys = {};
-document.addEventListener("keydown", e => keys[e.key] = true);
-document.addEventListener("keyup", e => keys[e.key] = false);
+function selectAnswer(index, button) {
+    const q = questions[currentQuestion];
 
-// Touch / boutons
-let moveLeft = false, moveRight = false;
-function startLeft(){ moveLeft = true; }
-function stopLeft(){ moveLeft = false; }
-function startRight(){ moveRight = true; }
-function stopRight(){ moveRight = false; }
-
-const btnLeft = document.getElementById("btn-left");
-const btnRight = document.getElementById("btn-right");
-
-btnLeft.addEventListener("mousedown", startLeft);
-btnLeft.addEventListener("mouseup", stopLeft);
-btnLeft.addEventListener("touchstart", startLeft);
-btnLeft.addEventListener("touchend", stopLeft);
-
-btnRight.addEventListener("mousedown", startRight);
-btnRight.addEventListener("mouseup", stopRight);
-btnRight.addEventListener("touchstart", startRight);
-btnRight.addEventListener("touchend", stopRight);
-
-// Boucle du jeu
-function gameLoop() {
-    if (gameOver) return;
-
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Déplacement joueur
-    if ((keys["ArrowLeft"] || moveLeft) && player.x > 0) player.x -= player.speed;
-    if ((keys["ArrowRight"] || moveRight) && player.x < canvas.width - player.width) player.x += player.speed;
-
-    // Joueur
-    ctx.fillStyle = "blue";
-    ctx.fillRect(player.x, player.y, player.width, player.height);
-
-    // Obstacles
-    if (Math.random() < 0.03) {
-        obstacles.push({ x: Math.random() * (canvas.width - 40), y: 0, width: 40, height: 40, speed: 3 });
-    }
-
-    obstacles.forEach(o => {
-        o.y += o.speed;
-        ctx.fillStyle = "red";
-        ctx.fillRect(o.x, o.y, o.width, o.height);
-
-        // Collision
-        if (o.x < player.x + player.width &&
-            o.x + o.width > player.x &&
-            o.y < player.y + player.height &&
-            o.y + o.height > player.y) {
-            endGame();
+    // Coloration des boutons
+    const optionButtons = document.querySelectorAll(".option");
+    optionButtons.forEach((btn, i) => {
+        btn.disabled = true;
+        if(i === q.answer){
+            btn.classList.add("correct");
+        } else if(i === index){
+            btn.classList.add("wrong");
         }
     });
 
-    // Filtrer obstacles sortis
-    obstacles = obstacles.filter(o => o.y < canvas.height);
-
-    requestAnimationFrame(gameLoop);
+    // Incrémenter score si correct
+    if(index === q.answer){
+        score++;
+        document.getElementById("score").innerText = "Score: " + score;
+    }
 }
 
-// Fin du jeu
+// Passer à la question suivante
+document.getElementById("nextBtn").addEventListener("click", () => {
+    currentQuestion++;
+    if(currentQuestion >= questions.length) {
+        endGame();
+    } else {
+        showQuestion();
+    }
+});
+
 function endGame() {
-    gameOver = true;
-    document.getElementById("game-status").textContent = "💀 Game Over !";
-    document.getElementById("replay-btn").style.display = "inline-block";
+    document.getElementById("question").innerText = "Jeu terminé! Ton score final est: " + score;
+    document.getElementById("options").innerHTML = "";
+    document.getElementById("nextBtn").style.display = "none";
+    document.getElementById("replayBtn").style.display = "block";
 }
 
 // Rejouer
-document.getElementById("replay-btn").addEventListener("click", initGame);
+document.getElementById("replayBtn").addEventListener("click", () => {
+    currentQuestion = 0;
+    score = 0;
+    document.getElementById("score").innerText = "Score: 0";
+    document.getElementById("nextBtn").style.display = "block";
+    document.getElementById("replayBtn").style.display = "none";
+    showQuestion();
+});
 
-// Lancer le jeu
-initGame();
+// Lancer la première question
+showQuestion();
 </script>
 </body>
 </html>
