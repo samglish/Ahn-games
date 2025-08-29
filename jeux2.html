@@ -11,8 +11,8 @@
         align-items: center;
         height: 100vh;
         background: #f0f0f0;
-        touch-action: manipulation;
         font-family: sans-serif;
+        touch-action: manipulation;
     }
     #game {
         position: relative;
@@ -23,21 +23,24 @@
         border: 2px solid #000;
         overflow: hidden;
     }
+    /* Chien en CSS */
     #dog {
         position: absolute;
         bottom: 0;
         left: 50px;
         width: 40px;
         height: 40px;
-        background: brown;
-        border-radius: 50%;
+        background-color: brown;
+        border-radius: 10px;
+        box-shadow: 10px 5px 0 0 darkbrown, 0 -10px 0 0 saddlebrown;
     }
+    /* Obstacles plus grands */
     .obstacle {
         position: absolute;
         bottom: 0;
-        width: 20px;
-        height: 40px;
-        background: green;
+        width: 30px;   /* largeur augmentée */
+        height: 60px;  /* hauteur augmentée */
+        background-color: green;
     }
     #score {
         position: absolute;
@@ -50,13 +53,14 @@
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
-        padding: 10px 20px;
+        padding: 12px 24px;
         font-size: 18px;
         display: none;
         background-color: orange;
         border: none;
         border-radius: 5px;
         cursor: pointer;
+        z-index: 10;
     }
 </style>
 </head>
@@ -79,28 +83,28 @@ let score = 0;
 let gameOver = false;
 let obstacles = [];
 
-// Fonction de saut
+// Saut rapide et haut
 function jump() {
     if (isJumping || gameOver) return;
     isJumping = true;
     let up = setInterval(() => {
-        if (dogBottom >= 100) {
+        if (dogBottom >= 150) {
             clearInterval(up);
             let down = setInterval(() => {
                 if (dogBottom <= 0) {
                     clearInterval(down);
                     isJumping = false;
                 }
-                dogBottom -= 5;
+                dogBottom -= 8;
                 dog.style.bottom = dogBottom + 'px';
-            }, 20);
+            }, 15);
         }
-        dogBottom += 5;
+        dogBottom += 8;
         dog.style.bottom = dogBottom + 'px';
-    }, 20);
+    }, 15);
 }
 
-// Créer obstacles
+// Créer obstacles venant de droite
 function createObstacle() {
     if (gameOver) return;
 
@@ -112,7 +116,7 @@ function createObstacle() {
     obstacles.push(obstacle);
 
     let move = setInterval(() => {
-        if (pos < -20) {
+        if (pos < -30) { // largeur obstacle = 30
             clearInterval(move);
             game.removeChild(obstacle);
             obstacles = obstacles.filter(o => o !== obstacle);
@@ -127,7 +131,7 @@ function createObstacle() {
             endGame();
         }
 
-        pos -= 6;
+        pos -= 8;
         obstacle.style.left = pos + 'px';
     }, 20);
 
@@ -138,6 +142,7 @@ function createObstacle() {
 function endGame() {
     gameOver = true;
     obstacles.forEach(o => game.removeChild(o));
+    obstacles = [];
     replayBtn.style.display = 'block';
 }
 
